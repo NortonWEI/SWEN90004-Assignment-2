@@ -35,6 +35,6 @@ class DynamicParamReader:
 
     def read_params(self) -> dict:
         """Read and return the params dict from the file path"""
-        with open(self.file_path) as file:
+        with open(self.file_path, 'r') as file:
             params = json.load(file)
             return params

@@ -3,7 +3,7 @@ from math import sqrt, exp, floor
 from random import shuffle, choice, uniform, randint
 from typing import List, Optional, Union, Callable
 
-from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY
+from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT
 from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD
 
 
@@ -22,6 +22,8 @@ class World:
 
     def __init__(self, dynamic_params_reader: DynamicParamReader, output_filename: str) -> None:
         """Create all components."""
+        self.params_reader = dynamic_params_reader
+        self.output_filename = output_filename
         self.patch_map = PatchMap(self)
         self.turtles = []
 
@@ -31,9 +33,7 @@ class World:
         for i in range(0, total_agents()):
             self.turtles.append(Agent(self))
 
-        self.params_reader = dynamic_params_reader
-        self.output_filename = output_filename
-
+        # Write header row for output csv
         with open(output_filename, 'w') as output_file:
             csv_writer = csv.writer(output_file)
             header_columns = ['frame', 'quiet', 'jailed', 'active']
@@ -93,7 +93,7 @@ class Turtle:
 
     def can_move(self) -> bool:
         """Determines whether this turtle can move."""
-        return True
+        return self.world.get_dynamic_param(MOVEMENT[0]) is True
 
     def move_to_patch(self, new_patch: 'Patch') -> None:
         """Move to a specified patch."""
@@ -124,7 +124,9 @@ class Cop(Turtle):
     def update(self) -> None:
         """Perform relevant action as a Cop."""
         super().update()
-        self.enforce()
+
+        if self.patch is not None:
+            self.enforce()
 
     def can_move(self) -> bool:
         """Cops can always move if parent class allows movement."""
@@ -174,7 +176,7 @@ class Agent(Turtle):
         super().update()
 
         # Only determine behaviour if it is not jailed
-        if not self.is_jailed():
+        if self.patch is not None and not self.is_jailed():
             self.determine_behaviour()
 
     def is_jailed(self) -> bool:
