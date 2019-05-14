@@ -5,7 +5,10 @@ public class Simulator {
         World world = new World();
 
         while (true) {
+            System.out.println("Frame #" + tick);
             world.update();
+            System.out.println("");
+
             Thread.sleep(1000);
             tick ++;
         }

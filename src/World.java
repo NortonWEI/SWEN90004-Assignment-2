@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Simulates a world of agents, cops and patches.
@@ -44,6 +45,9 @@ class World implements Tickable {
     @Override
     public void update() {
         patchManager.update();
+
+        // Shuffle all turtles so they perform action in a random sequence
+        Collections.shuffle(turtles);
         turtles.forEach(Turtle::update);
     }
 }

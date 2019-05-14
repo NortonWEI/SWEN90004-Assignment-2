@@ -43,7 +43,21 @@ public class Agent extends Turtle {
     @Override
     public void update() {
         super.update();
-        determineBehaviour();
+
+        // Only determine behaviour if it is not jailed
+        if (!isJailed()) {
+            determineBehaviour();
+        }
+
+        decrementJailTerm();
+    }
+
+    /**
+     * The agent can only move if it's not jailed.
+     */
+    @Override
+    boolean canMove() {
+        return !isJailed();
     }
 
     /**
@@ -61,7 +75,7 @@ public class Agent extends Turtle {
     private double getEstimatedArrestProbability() {
         PatchManager patchManager = world.getPatchManager();
         int c = patchManager.getNeighbourTurtleCount(patch, Cop.class, null);
-        int a = patchManager.getNeighbourTurtleCount(patch, Agent.class, (turtle -> ((Agent) turtle).active));
+        int a = 1 + patchManager.getNeighbourTurtleCount(patch, Agent.class, (turtle -> ((Agent) turtle).active));
         return 1 - Math.exp(-Params.K*Math.floor(c/a));
     }
 
@@ -77,7 +91,7 @@ public class Agent extends Turtle {
      * @return true if jailed; false otherwise
      */
     boolean isJailed() {
-        return jailTerm == 0;
+        return jailTerm > 0;
     }
 
     /**
@@ -91,7 +105,7 @@ public class Agent extends Turtle {
     /**
      * Decrement the current jail term.
      */
-    void decrementJailTerm() {
+    private void decrementJailTerm() {
         if (jailTerm > 0) {
             jailTerm -= 1;
         }
@@ -110,5 +124,26 @@ public class Agent extends Turtle {
      */
     void setActive(boolean active) {
         this.active = active;
+    }
+
+    /**
+     * Returns a symbol representing agent and its current status.
+     * @return symbol in string
+     */
+    @Override
+    public String toString() {
+        String status;
+
+        if (isActive()) {
+            status = "+";
+        } else {
+            if (isJailed()) {
+                status = "*";
+            } else {
+                status = "-";
+            }
+        }
+
+        return "A" + status;
     }
 }

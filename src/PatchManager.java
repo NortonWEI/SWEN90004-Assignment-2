@@ -1,4 +1,6 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Predicate;
@@ -21,8 +23,8 @@ class PatchManager implements Tickable {
 
         // Initialise all patches
         int patchIndex = 0;
-        for (int i = 0; i < Params.MAP_WIDTH; i++) {
-            for (int j = 0; j < Params.MAP_HEIGHT; j++) {
+        for (int i = 0; i < Params.MAP_HEIGHT; i++) {
+            for (int j = 0; j < Params.MAP_WIDTH; j++) {
                 patches[patchIndex] = new Patch(i, j);
                 patchIndex ++;
             }
@@ -34,7 +36,7 @@ class PatchManager implements Tickable {
      */
     @Override
     public void update() {
-        // Dont need to do anything
+        print();
     }
 
     /**
@@ -63,15 +65,16 @@ class PatchManager implements Tickable {
      * @return a patch
      */
     Patch getRandomUnoccupiedPatch() {
-        Patch patch;
+        // Filter out unoccupied patches first
+        List<Patch> unoccupiedPatches = Arrays.stream(patches)
+                .filter(patch -> !patch.isOccupied())
+                .collect(Collectors.toList());
 
-        do {
-            Random r = new Random();
-            int index = r.nextInt(patches.length + 1);
-            patch = patches[index];
-        } while (!patch.isOccupied());
+        // Get an random patch from filtered list
+        Random r = new Random();
+        int index = r.nextInt(unoccupiedPatches.size());
 
-        return patch;
+        return unoccupiedPatches.get(index);
     }
 
     /**
@@ -110,5 +113,34 @@ class PatchManager implements Tickable {
         ));
 
         return neighbours.size();
+    }
+
+    /**
+     * Print current patches
+     */
+    void print() {
+        System.out.println("X");
+        for (int y=Params.MAP_HEIGHT-1; y>=0; y--) {
+            StringBuilder row = new StringBuilder(String.format("%1$-5d", y));
+
+            for (Patch patch: patches) {
+                if (patch.getY() != y) {
+                    continue;
+                }
+                row.append(String.format("|%1$-6s", patch.toString()));
+            }
+
+            System.out.println(row);
+        }
+
+        StringBuilder row = new StringBuilder(String.format("%1$-5s", ""));
+
+        for (int x=0; x<=Params.MAP_WIDTH-1; x++) {
+            row.append(String.format("|%1$-6d", x));
+        }
+
+        row.append("Y");
+
+        System.out.println(row);
     }
 }

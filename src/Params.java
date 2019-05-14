@@ -4,13 +4,13 @@
 class Params {
     static final double K = 2.3;
     static final double THRESHOLD = 0.1;
-    static final int MAP_WIDTH = 400;
-    static final int MAP_HEIGHT = 400;
-    private static final double INITIAL_COP_DENSITY = 0.100;
+    static final int MAP_WIDTH = 5;
+    static final int MAP_HEIGHT = 5;
+    private static final double INITIAL_COP_DENSITY = 0.04;
     private static final double INITIAL_AGENT_DENSITY = 0.700;
     static final double VISION = 7.0;
     static final int MAX_JAILED_TERM = 30;
-    static final double GOVERNMENT_LEGITIMACY = 0.8;
+    static final double GOVERNMENT_LEGITIMACY = 0.82;
 
     /**
      * @return total number of patches

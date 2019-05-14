@@ -36,7 +36,7 @@ public class Patch {
      * Get the x coordinate of the patch.
      * @return x coordinate
      */
-    public int getX() {
+    int getX() {
         return x;
     }
 
@@ -44,7 +44,7 @@ public class Patch {
      * Get the y coordinate of the patch.
      * @return y coordinate
      */
-    public int getY() {
+    int getY() {
         return y;
     }
 
@@ -96,7 +96,18 @@ public class Patch {
      * Get all turtles.
      * @return list of turtles
      */
-    public ArrayList<Turtle> getTurtles() {
+    ArrayList<Turtle> getTurtles() {
         return turtles;
+    }
+
+    @Override
+    public String toString() {
+        String output = "";
+
+        for (Turtle turtle: turtles) {
+            output = output.concat(turtle.toString());
+        }
+
+        return output;
     }
 }

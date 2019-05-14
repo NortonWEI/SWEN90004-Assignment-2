@@ -23,6 +23,14 @@ class Cop extends Turtle {
     }
 
     /**
+     * Cop can always move.
+     */
+    @Override
+    boolean canMove() {
+        return true;
+    }
+
+    /**
      * Find and arrest a random active agent in the neighbourhood
      */
     private void enforce() {
@@ -31,9 +39,14 @@ class Cop extends Turtle {
             turtle instanceof Agent && ((Agent) turtle).isActive()
         ));
 
+        // Dont continue if there is no matched agent
+        if (agents.size() == 0) {
+            return;
+        }
+
         // Select a random one from the matched agents
         Random r = new Random();
-        int index = r.nextInt(agents.size() + 1);
+        int index = r.nextInt(agents.size());
         Agent suspect = (Agent) agents.get(index);
 
         // Move to the patch of the (about-to-be) jailed agent
@@ -42,5 +55,14 @@ class Cop extends Turtle {
         // Arrest suspect
         suspect.setActive(false);
         suspect.setJailTerm(r.nextInt(Params.MAX_JAILED_TERM + 1));
+    }
+
+    /**
+     * Returns a symbol representing cop.
+     * @return symbol in string
+     */
+    @Override
+    public String toString() {
+        return "C";
     }
 }

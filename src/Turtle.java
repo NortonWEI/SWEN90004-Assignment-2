@@ -15,7 +15,10 @@ abstract class Turtle implements Tickable {
      */
     Turtle(World world) {
         this.world = world;
-        move();
+
+        if (canMove()) {
+            move();
+        }
     }
 
     /**
@@ -31,6 +34,9 @@ abstract class Turtle implements Tickable {
      * @param newPatch the new patch to be moved to
      */
     void moveToPatch(Patch newPatch) {
+        if (patch != null) {
+            patch.removeTurtle(this);
+        }
         newPatch.addTurtle(this);
         this.patch = newPatch;
     }
@@ -49,4 +55,10 @@ abstract class Turtle implements Tickable {
     public void update() {
         move();
     }
+
+    /**
+     * Determines whether this turtle can move.
+     * @return true if it can; false otherwise
+     */
+    abstract boolean canMove();
 }
