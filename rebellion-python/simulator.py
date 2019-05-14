@@ -2,16 +2,21 @@ from time import sleep
 from models import World
 
 # Author: Dafu Ai
+from static_params import MAX_FRAMES
 
 
 def main():
     """The entry point for simulation."""
-    tick = 0
-    world = World()
+    frame = 1
+    world = World(dynamic_params_filename='dynamic_params.json', output_filename='out.csv')
 
-    while True:
-        print("Frame #" + str(tick))
-        world.update()
+    while frame <= MAX_FRAMES:
+        print("Frame #" + str(frame))
+        world.update(frame)
 
         sleep(1)
-        tick += 1
+        frame += 1
+
+
+if __name__ == '__main__':
+    main()

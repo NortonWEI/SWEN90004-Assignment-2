@@ -1,9 +1,9 @@
-"""
-This file defines all constants which are to be set before program runs.
+import json
+from pathlib import Path
 
-Author: Dafu Ai
-"""
+# Author: Dafu ai
 
+# Constants for static parameters (they wont change at run time)
 K: float = 0.1                      # Factor for determining arrest probability.
 THRESHOLD: float = 0.4              # By how much must G > N to make someone rebel?
 MAP_HEIGHT: int = 10                # Width of the patch map (i.e. the number of patches in x direction).
@@ -11,8 +11,8 @@ MAP_WIDTH: int = 10                 # Width of the patch map (i.e. the number of
 INITIAL_COP_DENSITY: float = 0.04   # Percentage of cops (in the total number of patches in the map).
 INITIAL_AGENT_DENSITY: float = 0.7  # Percentage of agents (in the total number of patches in the map).
 VISION: float = 7.0                 # Defines the radius of neighbourhood for any patch.
-MAX_JAILED_TERM: int = 30           # Maximum possible jailed term.
-GOVERNMENT_LEGITIMACY: float = 0.1  # Government legitimacy.
+MAX_FRAMES = 10                    # The number of frames to be ticked for the simulator
+FILE_PATH = 'dynamic_params.json'   # Path of the file that stores the parameters
 
 
 def total_patches() -> int:
