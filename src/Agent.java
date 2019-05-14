@@ -120,6 +120,14 @@ public class Agent extends Turtle {
     }
 
     /**
+     * Determine whether this patch is quiet (i.e. inactive & not jailed)
+     * @return true if active; false otherwise.
+     */
+    boolean isQuiet() {
+        return !isActive() && !isJailed();
+    }
+
+    /**
      * Set activeness of the patch.
      */
     void setActive(boolean active) {
