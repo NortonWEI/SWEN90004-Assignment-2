@@ -73,9 +73,9 @@ public class Agent extends Turtle {
      * @return the probability
      */
     private double getEstimatedArrestProbability() {
-        PatchManager patchManager = world.getPatchManager();
-        int c = patchManager.getNeighbourTurtleCount(patch, Cop.class, null);
-        int a = 1 + patchManager.getNeighbourTurtleCount(patch, Agent.class, (turtle -> ((Agent) turtle).active));
+        PatchMap patchMap = world.getPatchMap();
+        int c = patchMap.getNeighbourTurtleCount(patch, Cop.class, null);
+        int a = 1 + patchMap.getNeighbourTurtleCount(patch, Agent.class, (turtle -> ((Agent) turtle).active));
         return 1 - Math.exp(-Params.K*Math.floor(c/a));
     }
 

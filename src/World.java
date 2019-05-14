@@ -3,12 +3,14 @@ import java.util.Collections;
 
 /**
  * Simulates a world of agents, cops and patches.
+ *
+ * @author Dafu Ai
  */
 class World implements Tickable {
     /**
      * All patches.
      */
-    private PatchManager patchManager;
+    private PatchMap patchMap;
 
     /**
      * All turtles.
@@ -19,7 +21,7 @@ class World implements Tickable {
      * Construct a new World object.
      */
     World() {
-        patchManager = new PatchManager();
+        patchMap = new PatchMap();
         turtles = new ArrayList<>();
 
         for (int i=0; i<Params.NUM_COP(); i++) {
@@ -32,11 +34,11 @@ class World implements Tickable {
     }
 
     /**
-     * Get the patch manager.
-     * @return the patch manager
+     * Get the patch map.
+     * @return the patch map
      */
-    PatchManager getPatchManager() {
-        return patchManager;
+    PatchMap getPatchMap() {
+        return patchMap;
     }
 
     /**
@@ -44,7 +46,7 @@ class World implements Tickable {
      */
     @Override
     public void update() {
-        patchManager.update();
+        patchMap.update();
 
         // Shuffle all turtles so they perform action in a random sequence
         Collections.shuffle(turtles);

@@ -35,7 +35,7 @@ class Cop extends Turtle {
      */
     private void enforce() {
         // Find all active agents in the neighbourhood
-        ArrayList<Turtle> agents = world.getPatchManager().filterNeighbourTurtle(patch, (turtle ->
+        ArrayList<Turtle> agents = world.getPatchMap().filterNeighbourTurtle(patch, (turtle ->
             turtle instanceof Agent && ((Agent) turtle).isActive()
         ));
 

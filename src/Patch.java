@@ -1,9 +1,9 @@
 import java.util.ArrayList;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Simulates a Patch
+ *
+ * @author Wenzhou Wei (Initial Design), Dafu Ai
  */
 public class Patch {
     /**
@@ -100,6 +100,9 @@ public class Patch {
         return turtles;
     }
 
+    /**
+     * Return a string representing all turtles.
+     */
     @Override
     public String toString() {
         String output = "";

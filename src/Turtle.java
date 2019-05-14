@@ -1,3 +1,8 @@
+/**
+ * Simulates a turtle object. Must be extended to use.
+ *
+ * @author Dafu Ai
+ */
 abstract class Turtle implements Tickable {
     /**
      * The patch this turtle is currently at.
@@ -25,7 +30,7 @@ abstract class Turtle implements Tickable {
      * Move to a random, unoccupied patch.
      */
     private void move() {
-        Patch newPatch = world.getPatchManager().getRandomUnoccupiedPatch();
+        Patch newPatch = world.getPatchMap().getRandomUnoccupiedPatch();
         moveToPatch(newPatch);
     }
 

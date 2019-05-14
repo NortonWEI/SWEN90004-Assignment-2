@@ -1,5 +1,13 @@
+/**
+ * The main class for simulation.
+ *
+ * @author Dafu Ai, Wenzhou Wei
+ */
 public class Simulator {
 
+    /**
+     * Runs the simulation
+     */
     public static void main(String[] args) throws InterruptedException {
         int tick = 0;
         World world = new World();

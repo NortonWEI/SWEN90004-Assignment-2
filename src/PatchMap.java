@@ -1,4 +1,3 @@
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,18 +6,20 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Manager class for Patch objects
+ * Representing and managing a map of patch objects.
+ *
+ * @author Dafu Ai
  */
-class PatchManager implements Tickable {
+class PatchMap implements Tickable {
     /**
      * All patches stored
      */
     private Patch[] patches;
 
     /**
-     * Construct a new Patch manager.
+     * Construct a new Patch map.
      */
-    PatchManager() {
+    PatchMap() {
         patches = new Patch[Params.NUM_PATCH()];
 
         // Initialise all patches
