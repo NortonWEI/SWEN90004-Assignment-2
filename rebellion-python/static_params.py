@@ -11,7 +11,7 @@ MAP_WIDTH: int = 10                 # Width of the patch map (i.e. the number of
 INITIAL_COP_DENSITY: float = 0.04   # Percentage of cops (in the total number of patches in the map).
 INITIAL_AGENT_DENSITY: float = 0.7  # Percentage of agents (in the total number of patches in the map).
 VISION: float = 7.0                 # Defines the radius of neighbourhood for any patch.
-MAX_FRAMES = 10                    # The number of frames to be ticked for the simulator
+MAX_FRAMES = 1000                   # The number of frames to be ticked for the simulator
 FILE_PATH = 'dynamic_params.json'   # Path of the file that stores the parameters
 
 

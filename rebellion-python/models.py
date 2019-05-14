@@ -15,12 +15,12 @@ class World:
     """
     Simulates a world of agents, cops and patches.
     """
-    patch_map: 'PatchMap'                 # The patch map managing all patches
+    patch_map: 'PatchMap'               # The patch map managing all patches
     turtles: List                       # All turtles
     params_reader: DynamicParamReader   # Reader for dynamic parameters
     output_filename: str                # Output file path
 
-    def __init__(self, dynamic_params_filename: str, output_filename: str) -> None:
+    def __init__(self, dynamic_params_reader: DynamicParamReader, output_filename: str) -> None:
         """Create all components."""
         self.patch_map = PatchMap(self)
         self.turtles = []
@@ -31,7 +31,7 @@ class World:
         for i in range(0, total_agents()):
             self.turtles.append(Agent(self))
 
-        self.params_reader = DynamicParamReader(dynamic_params_filename)
+        self.params_reader = dynamic_params_reader
         self.output_filename = output_filename
 
         with open(output_filename, 'w') as output_file:
