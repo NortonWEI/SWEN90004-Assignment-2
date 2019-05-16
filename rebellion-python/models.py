@@ -36,7 +36,7 @@ class World:
         # Write header row for output csv
         with open(output_filename, 'w') as output_file:
             csv_writer = csv.writer(output_file)
-            header_columns = ['frame', 'quiet', 'jailed', 'active', 'is_reported']
+            header_columns = ['frame', 'quiet', 'jailed', 'active', 'killed', 'is_reported']
 
             for p in DYNAMIC_PARAMETERS:
                 header_columns.append(p[0])
@@ -58,8 +58,10 @@ class World:
 
         # Get stats for each agent status
         quiet = list(filter(lambda t: t.is_quiet(), agents))
+        quiet_alive = list(filter(lambda t: t.alive, quiet))
         jailed = list(filter(lambda t: t.is_jailed(), agents))
         active = list(filter(lambda t: t.active, agents))
+        killed = list(filter(lambda t: not t.alive, agents))
 
         # If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
         # it would be reported
@@ -70,7 +72,7 @@ class World:
         # Append current state to the output csv
         with open(self.output_filename, 'a') as output_file:
             csv_writer = csv.writer(output_file)
-            columns = [frame, len(quiet), len(jailed), len(active), str(is_reported)]
+            columns = [frame, len(quiet_alive), len(jailed), len(active), len(killed), str(is_reported)]
 
             params = self.params_reader.read_params()
 
@@ -176,6 +178,7 @@ class Agent(Turtle):
     active: bool                # Indicates whether the turtle is open rebelling
     risk_aversion: float        # The degree of reluctance to take risks
     perceived_hardship: float   # Perceived hardship of rebelling
+    alive: bool                 # Indicates whether the agent is alive or killed by the active-rebelling agent
 
     def __init__(self, world: World) -> None:
         """ Initialise the agent """
@@ -184,17 +187,21 @@ class Agent(Turtle):
         self.active = False
         self.risk_aversion = uniform(0, 1)
         self.perceived_hardship = uniform(0, 1)
+        self.alive = True
 
     def update(self) -> None:
         """Determines whether to open rebel."""
-        super().update()
 
-        # Only determine behaviour if it is not jailed
-        if self.patch is not None and not self.is_jailed():
-            self.determine_behaviour()
+        if self.alive:
+            super().update()
 
-        # Reduce jail term
-        self.decrement_jail_term()
+            # Only determine behaviour if it is not jailed
+            if self.patch is not None and not self.is_jailed():
+                self.determine_behaviour()
+                self.do_dismiss_agent()
+
+            # Reduce jail term
+            self.decrement_jail_term()
 
     def can_move(self) -> bool:
         """ If it is jailed it cannot move """
@@ -238,6 +245,21 @@ class Agent(Turtle):
 
     def is_dangerous_rebel(self) -> bool:
         return self.perceived_hardship > MIN_DANGEROUS_PERCEIVED_HARDSHIP
+
+    def do_dismiss_agent(self) -> None:
+        if self.active and self.is_dangerous_rebel():
+            # Find all quiet agents in the neighbourhood
+            agents = self.world.patch_map.filter_neighbour_turtles(
+                 self.patch,
+                lambda t: isinstance(t, Agent) and not t.active
+            )
+            # Don't continue if there is no matched agent
+            if len(agents) == 0:
+                return
+
+            # Kill a quiet agent
+            suspect = choice(agents)
+            suspect.alive = False
 
 
 class Patch:
