@@ -109,8 +109,11 @@ class Turtle:
         if not self.can_move() and not first_time:
             return
 
-        new_patch = self.world.patch_map.get_random_unoccupied_patch()
-        self.move_to_patch(new_patch)
+        new_patch = self.world.patch_map.get_random_unoccupied_patch(self.patch)
+
+        # Only move to the new patch if there is one available
+        if new_patch is not None:
+            self.move_to_patch(new_patch)
 
     def update(self) -> None:
         """Update the current state by moving to another place"""
@@ -271,9 +274,20 @@ class PatchMap:
         """Ignore the patch to be compared."""
         return list(filter(lambda p: p != patch and p.is_neighbour_with(patch), self.patches))
 
-    def get_random_unoccupied_patch(self) -> Patch:
-        """Get an random, unoccupied patch."""
-        return choice(list(filter(lambda p: not p.is_occupied(), self.patches)))
+    def get_random_unoccupied_patch(self , patch: Patch = None) -> Union[Patch, None]:
+        """
+        Get an random, unoccupied patch.
+        It will be a neighbour patch if the current patch is specified.
+        If there is no patch available, return None.
+        """
+
+        patches = self.get_neighbours(patch) if patch is not None else self.patches
+        unoccupied_patches = list(filter(lambda p: not p.is_occupied(), patches))
+
+        if len(unoccupied_patches) == 0:
+            return None
+
+        return choice(unoccupied_patches)
 
     def filter_neighbour_turtles(
             self,
