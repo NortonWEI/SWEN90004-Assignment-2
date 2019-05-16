@@ -89,7 +89,7 @@ class Turtle:
         """Place itself to a patch."""
         self.world = world
         self.patch = None
-        self.move()
+        self.move(True)
 
     def can_move(self) -> bool:
         """Determines whether this turtle can move."""
@@ -104,9 +104,9 @@ class Turtle:
         new_patch.add_turtle(self)
         self.patch = new_patch
 
-    def move(self) -> None:
-        """Move to a random, unoccupied patch."""
-        if not self.can_move():
+    def move(self, first_time: bool = False) -> None:
+        """Move to a random, unoccupied patch if it can move or they need to have an initial location)."""
+        if not self.can_move() and not first_time:
             return
 
         new_patch = self.world.patch_map.get_random_unoccupied_patch()
