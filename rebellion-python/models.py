@@ -217,6 +217,7 @@ class Agent(Turtle):
         """Determine the behaviour of this agent by flagging its activeness."""
         self.active = (self.get_grievance() - self.risk_aversion * self.get_estimated_arrest_probability()) > THRESHOLD
 
+
 class Patch:
     """
     Simulates a Patch (of a map).
