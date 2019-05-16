@@ -182,6 +182,9 @@ class Agent(Turtle):
         if self.patch is not None and not self.is_jailed():
             self.determine_behaviour()
 
+        # Reduce jail term
+        self.decrement_jail_term()
+
     def can_move(self) -> bool:
         """ If it is jailed it cannot move """
         return super().can_move() and not self.is_jailed()
@@ -216,6 +219,11 @@ class Agent(Turtle):
     def determine_behaviour(self) -> None:
         """Determine the behaviour of this agent by flagging its activeness."""
         self.active = (self.get_grievance() - self.risk_aversion * self.get_estimated_arrest_probability()) > THRESHOLD
+
+    def decrement_jail_term(self) -> None:
+        """ Decrement the jail term by 1 if it is positive """
+        if self.jail_term > 0:
+            self.jail_term -= 1
 
 
 class Patch:
