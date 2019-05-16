@@ -3,7 +3,7 @@ from math import sqrt, exp, floor
 from random import shuffle, choice, uniform, randint
 from typing import List, Optional, Union, Callable
 
-from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT
+from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT, REBELLION_THRESHOLD
 from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD
 
 
@@ -36,7 +36,7 @@ class World:
         # Write header row for output csv
         with open(output_filename, 'w') as output_file:
             csv_writer = csv.writer(output_file)
-            header_columns = ['frame', 'quiet', 'jailed', 'active']
+            header_columns = ['frame', 'quiet', 'jailed', 'active', 'is_reported']
 
             for p in DYNAMIC_PARAMETERS:
                 header_columns.append(p[0])
@@ -61,10 +61,15 @@ class World:
         jailed = list(filter(lambda t: t.is_jailed(), agents))
         active = list(filter(lambda t: t.active, agents))
 
+        # 
+        is_reported = False
+        if len(active)/(len(active) + len(quiet)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
+            is_reported = True 
+
         # Append current state to the output csv
         with open(self.output_filename, 'a') as output_file:
             csv_writer = csv.writer(output_file)
-            columns = [frame, len(quiet), len(jailed), len(active)]
+            columns = [frame, len(quiet), len(jailed), len(active), str(is_reported)]
 
             params = self.params_reader.read_params()
 

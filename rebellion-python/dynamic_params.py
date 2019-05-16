@@ -8,13 +8,15 @@ MAX_JAILED_TERM = ('max_jailed_term', 30)               # Maximum possible jaile
 GOVERNMENT_LEGITIMACY = ('government_legitimacy', 0.5)  # Government legitimacy.
 MOVEMENT = ('movement', True)
 FRAME_INTERVAL = ('frame_interval', 0.01)
+REBELLION_THRESHOLD = ('rebellion_threshold', 0.5)
 
 # Include all parameters here
 DYNAMIC_PARAMETERS = [
     MAX_JAILED_TERM,
     GOVERNMENT_LEGITIMACY,
     MOVEMENT,
-    FRAME_INTERVAL
+    FRAME_INTERVAL,
+    REBELLION_THRESHOLD
 ]
 
 
