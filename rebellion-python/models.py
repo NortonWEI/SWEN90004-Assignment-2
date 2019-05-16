@@ -4,7 +4,7 @@ from random import shuffle, choice, uniform, randint
 from typing import List, Optional, Union, Callable
 
 from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT, REBELLION_THRESHOLD
-from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD
+from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD, MIN_DANGEROUS_PERCEIVED_HARDSHIP
 
 
 # Author: Dafu Ai
@@ -61,7 +61,8 @@ class World:
         jailed = list(filter(lambda t: t.is_jailed(), agents))
         active = list(filter(lambda t: t.active, agents))
 
-        # 
+        # If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
+        # it would be reported
         is_reported = False
         if len(active)/(len(active) + len(quiet)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
             is_reported = True 
@@ -159,7 +160,12 @@ class Cop(Turtle):
 
         # Arrest suspect
         suspect.active = False
-        suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
+
+        # If the suspect is dangerous, the suspect will be jailed in the whole simulation
+        if suspect.is_dangerous_rebel():
+            suspect.jail_term = -1
+        else:   
+            suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
 
 
 class Agent(Turtle):
@@ -196,7 +202,7 @@ class Agent(Turtle):
 
     def is_jailed(self) -> bool:
         """Determine whether this agent is currently jailed."""
-        return self.jail_term > 0
+        return self.jail_term > 0 or self.jail_term == -1
 
     def is_quiet(self) -> bool:
         """Determine whether this patch is quiet (i.e. inactive & not jailed)."""
@@ -229,6 +235,9 @@ class Agent(Turtle):
         """ Decrement the jail term by 1 if it is positive """
         if self.jail_term > 0:
             self.jail_term -= 1
+
+    def is_dangerous_rebel(self) -> bool:
+        return self.perceived_hardship > MIN_DANGEROUS_PERCEIVED_HARDSHIP
 
 
 class Patch:
