@@ -66,7 +66,7 @@ class World:
         # If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
         # it would be reported
         is_reported = False
-        if len(active)/(len(active) + len(quiet)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
+        if len(active)/(len(active) + len(quiet_alive)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
             is_reported = True 
 
         # Append current state to the output csv
