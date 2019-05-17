@@ -13,7 +13,7 @@ INITIAL_AGENT_DENSITY: float = 0.7  # Percentage of agents (in the total number 
 VISION: float = 7.0                 # Defines the radius of neighbourhood for any patch.
 MAX_FRAMES = 1000                   # The number of frames to be ticked for the simulator
 FILE_PATH = 'dynamic_params.json'   # Path of the file that stores the parameters
-
+MIN_DANGEROUS_PERCEIVED_HARDSHIP : float = 0.8 # The minimum value of perceived hardship for being a dangerous rebel.
 
 def total_patches() -> int:
     """Total number of patches."""

@@ -3,8 +3,8 @@ from math import sqrt, exp, floor
 from random import shuffle, choice, uniform, randint
 from typing import List, Optional, Union, Callable
 
-from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT
-from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD
+from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT, REBELLION_THRESHOLD
+from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD, MIN_DANGEROUS_PERCEIVED_HARDSHIP
 
 
 # Author: Dafu Ai
@@ -36,7 +36,7 @@ class World:
         # Write header row for output csv
         with open(output_filename, 'w') as output_file:
             csv_writer = csv.writer(output_file)
-            header_columns = ['frame', 'quiet', 'jailed', 'active']
+            header_columns = ['frame', 'quiet', 'jailed', 'active', 'killed', 'is_reported']
 
             for p in DYNAMIC_PARAMETERS:
                 header_columns.append(p[0])
@@ -61,10 +61,22 @@ class World:
         jailed = list(filter(lambda t: t.is_jailed(), agents))
         active = list(filter(lambda t: t.active, agents))
 
+        #Extension : Indicates the number of quiet agent who survived
+        quiet_alive = list(filter(lambda t: t.alive, quiet))
+
+        #Extension : Indicates the number of quiet agent who were killed by dangerous rebel agent
+        killed = list(filter(lambda t: not t.alive, agents))
+
+        # Extension : If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
+        # it would be reported
+        is_reported = False
+        if len(active)/(len(active) + len(quiet_alive)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
+            is_reported = True 
+
         # Append current state to the output csv
         with open(self.output_filename, 'a') as output_file:
             csv_writer = csv.writer(output_file)
-            columns = [frame, len(quiet), len(jailed), len(active)]
+            columns = [frame, len(quiet_alive), len(jailed), len(active), len(killed), str(is_reported)]
 
             params = self.params_reader.read_params()
 
@@ -154,7 +166,12 @@ class Cop(Turtle):
 
         # Arrest suspect
         suspect.active = False
-        suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
+
+        # Extension : If the suspect is dangerous, the suspect will be jailed in the whole simulation by assigning -1
+        if suspect.is_dangerous_rebel():
+            suspect.jail_term = -1
+        else:   
+            suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
 
 
 class Agent(Turtle):
@@ -165,6 +182,7 @@ class Agent(Turtle):
     active: bool                # Indicates whether the turtle is open rebelling
     risk_aversion: float        # The degree of reluctance to take risks
     perceived_hardship: float   # Perceived hardship of rebelling
+    alive: bool                 # Indicates whether the agent is alive or killed by the active-rebelling agent
 
     def __init__(self, world: World) -> None:
         """ Initialise the agent """
@@ -173,17 +191,23 @@ class Agent(Turtle):
         self.active = False
         self.risk_aversion = uniform(0, 1)
         self.perceived_hardship = uniform(0, 1)
+        self.alive = True
 
     def update(self) -> None:
         """Determines whether to open rebel."""
-        super().update()
 
-        # Only determine behaviour if it is not jailed
-        if self.patch is not None and not self.is_jailed():
-            self.determine_behaviour()
+        # Extension : only living agent could perform the actions
+        if self.alive:
+            super().update()
 
-        # Reduce jail term
-        self.decrement_jail_term()
+            # Only determine behaviour if it is not jailed
+            if self.patch is not None and not self.is_jailed():
+                self.determine_behaviour()
+                # Extension : dangerous rebel agents could kill 1 quiet agent in the neighbourhood
+                self.do_dismiss_agent()
+
+            # Reduce jail term
+            self.decrement_jail_term()
 
     def can_move(self) -> bool:
         """ If it is jailed or movement is manually disabled it cannot move """
@@ -191,7 +215,7 @@ class Agent(Turtle):
 
     def is_jailed(self) -> bool:
         """Determine whether this agent is currently jailed."""
-        return hasattr(self, 'jail_term') and self.jail_term > 0
+        return hasattr(self, 'jail_term') and (self.jail_term > 0 or self.jail_term == -1)
 
     def is_quiet(self) -> bool:
         """Determine whether this patch is quiet (i.e. inactive & not jailed)."""
@@ -224,6 +248,24 @@ class Agent(Turtle):
         """ Decrement the jail term by 1 if it is positive """
         if self.jail_term > 0:
             self.jail_term -= 1
+
+    def is_dangerous_rebel(self) -> bool:
+        return self.perceived_hardship > MIN_DANGEROUS_PERCEIVED_HARDSHIP
+
+    def do_dismiss_agent(self) -> None:
+        if self.active and self.is_dangerous_rebel():
+            # Find all quiet agents in the neighbourhood
+            agents = self.world.patch_map.filter_neighbour_turtles(
+                 self.patch,
+                lambda t: isinstance(t, Agent) and not t.active
+            )
+            # Don't continue if there is no matched agent
+            if len(agents) == 0:
+                return
+
+            # Kill a quiet agent
+            suspect = choice(agents)
+            suspect.alive = False
 
 
 class Patch:
