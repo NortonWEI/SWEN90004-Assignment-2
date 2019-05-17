@@ -191,7 +191,7 @@ class Agent(Turtle):
 
     def is_jailed(self) -> bool:
         """Determine whether this agent is currently jailed."""
-        return self.jail_term > 0
+        return hasattr(self, 'jail_term') and self.jail_term > 0
 
     def is_quiet(self) -> bool:
         """Determine whether this patch is quiet (i.e. inactive & not jailed)."""
