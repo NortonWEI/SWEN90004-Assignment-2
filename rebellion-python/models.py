@@ -253,8 +253,9 @@ class Patch:
             if isinstance(turtle, Cop):
                 return True
 
+            # Jailed turtle considered as unoccupied
             if isinstance(turtle, Agent) and turtle.is_jailed():
-                return True
+                return False
 
         return False
 
