@@ -68,7 +68,8 @@ class World:
         killed = list(filter(lambda t: not t.alive, agents))
 
         # Extension : If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
-        # it would be reported
+        # it would be reported as true. This state is used as a reference for the Government and Cops that critical rebellion situation occurs 
+        # No changing behaviour on the model
         is_reported = False
         if len(active)/(len(active) + len(quiet_alive)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
             is_reported = True 
