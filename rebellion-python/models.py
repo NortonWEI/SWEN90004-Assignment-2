@@ -92,8 +92,8 @@ class Turtle:
         self.move(True)
 
     def can_move(self) -> bool:
-        """Determines whether this turtle can move."""
-        return self.world.get_dynamic_param(MOVEMENT[0]) is True
+        """Determines whether this turtle can move. By default it can always move."""
+        return True
 
     def move_to_patch(self, new_patch: 'Patch') -> None:
         """Move to a specified patch."""
@@ -186,8 +186,8 @@ class Agent(Turtle):
         self.decrement_jail_term()
 
     def can_move(self) -> bool:
-        """ If it is jailed it cannot move """
-        return super().can_move() and not self.is_jailed()
+        """ If it is jailed or movement is manually disabled it cannot move """
+        return super().can_move() and not self.is_jailed() and self.world.get_dynamic_param(MOVEMENT[0]) is True
 
     def is_jailed(self) -> bool:
         """Determine whether this agent is currently jailed."""
