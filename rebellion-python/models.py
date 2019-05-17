@@ -58,12 +58,16 @@ class World:
 
         # Get stats for each agent status
         quiet = list(filter(lambda t: t.is_quiet(), agents))
-        quiet_alive = list(filter(lambda t: t.alive, quiet))
         jailed = list(filter(lambda t: t.is_jailed(), agents))
         active = list(filter(lambda t: t.active, agents))
+
+        #Extension : Indicates the number of quiet agent who survived
+        quiet_alive = list(filter(lambda t: t.alive, quiet))
+
+        #Extension : Indicates the number of quiet agent who were killed by dangerous rebel agent
         killed = list(filter(lambda t: not t.alive, agents))
 
-        # If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
+        # Extension : If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
         # it would be reported
         is_reported = False
         if len(active)/(len(active) + len(quiet_alive)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
@@ -163,7 +167,7 @@ class Cop(Turtle):
         # Arrest suspect
         suspect.active = False
 
-        # If the suspect is dangerous, the suspect will be jailed in the whole simulation
+        # Extension : If the suspect is dangerous, the suspect will be jailed in the whole simulation by assigning -1
         if suspect.is_dangerous_rebel():
             suspect.jail_term = -1
         else:   
@@ -192,12 +196,14 @@ class Agent(Turtle):
     def update(self) -> None:
         """Determines whether to open rebel."""
 
+        # Extension : only living agent could perform the actions
         if self.alive:
             super().update()
 
             # Only determine behaviour if it is not jailed
             if self.patch is not None and not self.is_jailed():
                 self.determine_behaviour()
+                # Extension : dangerous rebel agents could kill 1 quiet agent in the neighbourhood
                 self.do_dismiss_agent()
 
             # Reduce jail term
@@ -209,7 +215,6 @@ class Agent(Turtle):
 
     def is_jailed(self) -> bool:
         """Determine whether this agent is currently jailed."""
-
         return hasattr(self, 'jail_term') and (self.jail_term > 0 or self.jail_term == -1)
 
     def is_quiet(self) -> bool:
