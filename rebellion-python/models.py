@@ -224,7 +224,31 @@ class Agent(Turtle):
 
     def get_grievance(self) -> float:
         """Calculate and return the grievance of the agent."""
-        return self.perceived_hardship * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
+
+        # Extension : The perceive hardship of an agent could also be affected by the other active agents' 
+        # perceived hardship in the neighbourhood as the active agent tend to have bad influence to the other agents.
+        # The updated grievance is updated by using the average value of the other active agents' 
+        # perceived hardship in the neighbourhood
+
+        average_perceived_hardship = 0
+        surrounding_active_agents = self.world.patch_map.filter_neighbour_turtles(
+                self.patch,
+                lambda t: isinstance(t, Agent) and t.active
+        )
+
+        # Extension : Calculate the average of agents' perceived hardship in the neighbourhood
+        total_perceived_hardships = 0
+        total_active_agents = len(surrounding_active_agents)
+       
+        if total_active_agents > 0 :
+            for agent in surrounding_active_agents:
+                total_perceived_hardships += agent.perceived_hardship
+
+            average_perceived_hardship = total_perceived_hardships / total_active_agents 
+            return ((self.perceived_hardship + average_perceived_hardship)/2) * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
+       
+        else:
+            return self.perceived_hardship * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
 
     def get_estimated_arrest_probability(self) -> float:
         """Calculate and return the estimated arrest probability of the agent (based on the formula)."""
