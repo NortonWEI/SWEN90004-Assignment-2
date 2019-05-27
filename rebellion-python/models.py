@@ -3,8 +3,8 @@ from math import sqrt, exp, floor
 from random import shuffle, choice, uniform, randint
 from typing import List, Optional, Union, Callable
 
-from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT, REBELLION_THRESHOLD
-from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD, MIN_DANGEROUS_PERCEIVED_HARDSHIP
+from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT
+from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD
 
 
 # Author: Dafu Ai
@@ -36,7 +36,7 @@ class World:
         # Write header row for output csv
         with open(output_filename, 'w') as output_file:
             csv_writer = csv.writer(output_file)
-            header_columns = ['frame', 'quiet', 'jailed', 'active', 'killed', 'is_reported']
+            header_columns = ['frame', 'quiet', 'jailed', 'active']
 
             for p in DYNAMIC_PARAMETERS:
                 header_columns.append(p[0])
@@ -61,30 +61,17 @@ class World:
         jailed = list(filter(lambda t: t.is_jailed(), agents))
         active = list(filter(lambda t: t.active, agents))
 
-        #Extension : Indicates the number of quiet agent who survived
-        # quiet_alive = list(filter(lambda t: t.alive, quiet))
+        # Append current state to the output csv
+        with open(self.output_filename, 'a') as output_file:
+            csv_writer = csv.writer(output_file)
+            columns = [frame, len(quiet), len(jailed), len(active)]
 
-        #Extension : Indicates the number of quiet agent who were killed by dangerous rebel agent
-        # killed = list(filter(lambda t: not t.alive, agents))
+            params = self.params_reader.read_params()
 
-        # Extension : If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
-        # it would be reported as true. This state is used as a reference for the Government and Cops that critical rebellion situation occurs 
-        # No changing behaviour on the model
-        # is_reported = False
-        # if len(active)/(len(active) + len(quiet_alive)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
-        #     is_reported = True
-        #
-        # # Append current state to the output csv
-        # with open(self.output_filename, 'a') as output_file:
-        #     csv_writer = csv.writer(output_file)
-        #     columns = [frame, len(quiet_alive), len(jailed), len(active), len(killed), str(is_reported)]
-        #
-        #     params = self.params_reader.read_params()
-        #
-        #     for p in DYNAMIC_PARAMETERS:
-        #         columns.append(params[p[0]])
-        #
-        #     csv_writer.writerow(columns)
+            for p in DYNAMIC_PARAMETERS:
+                columns.append(params[p[0]])
+
+            csv_writer.writerow(columns)
 
     def get_dynamic_param(self, key):
         """Get the value of dynamic parameters"""
@@ -152,7 +139,7 @@ class Cop(Turtle):
         """Find and arrest a random active agent in the neighbourhood."""
 
         # Find all active agents in the neighbourhood
-        agents = self.world.patch_map.filter_neighbour_turtles(
+        agents = PatchMap.filter_neighbour_turtles(
             self.patch,
             lambda t: isinstance(t, Agent) and t.active
         )
@@ -167,13 +154,10 @@ class Cop(Turtle):
 
         # Arrest suspect
         suspect.active = False
-
-        # Extension : If the suspect is dangerous, the suspect will be jailed in the whole simulation by assigning -1
-        # if suspect.is_dangerous_rebel():
-        #     suspect.jail_term = -1
-        # else:
-        #     suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
-        suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
+        if self.world.get_dynamic_param(MAX_JAILED_TERM[0]) == 0:
+            suspect.jail_term = 0
+        else:
+            suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
 
 
 class Agent(Turtle):
@@ -184,7 +168,6 @@ class Agent(Turtle):
     active: bool                # Indicates whether the turtle is open rebelling
     risk_aversion: float        # The degree of reluctance to take risks
     perceived_hardship: float   # Perceived hardship of rebelling
-    alive: bool                 # Indicates whether the agent is alive or killed by the active-rebelling agent
 
     def __init__(self, world: World) -> None:
         """ Initialise the agent """
@@ -193,20 +176,14 @@ class Agent(Turtle):
         self.active = False
         self.risk_aversion = uniform(0, 1)
         self.perceived_hardship = uniform(0, 1)
-        self.alive = True
 
     def update(self) -> None:
         """Determines whether to open rebel."""
-
-        # Extension : only living agent could perform the actions
-        # if self.alive:
         super().update()
 
         # Only determine behaviour if it is not jailed
         if self.patch is not None and not self.is_jailed():
             self.determine_behaviour()
-            # Extension : dangerous rebel agents could kill 1 quiet agent in the neighbourhood
-            # self.do_dismiss_agent()
 
         # Reduce jail term
         self.decrement_jail_term()
@@ -217,7 +194,7 @@ class Agent(Turtle):
 
     def is_jailed(self) -> bool:
         """Determine whether this agent is currently jailed."""
-        return hasattr(self, 'jail_term') and (self.jail_term > 0 or self.jail_term == -1)
+        return hasattr(self, 'jail_term') and self.jail_term > 0
 
     def is_quiet(self) -> bool:
         """Determine whether this patch is quiet (i.e. inactive & not jailed)."""
@@ -225,41 +202,15 @@ class Agent(Turtle):
 
     def get_grievance(self) -> float:
         """Calculate and return the grievance of the agent."""
-
-        # # Extension : The perceive hardship of an agent could also be affected by the other active agents'
-        # # perceived hardship in the neighbourhood as the active agent tend to have bad influence to the other agents.
-        # # The updated grievance is updated by using the average value of the other active agents'
-        # # perceived hardship in the neighbourhood
-        #
-        # average_perceived_hardship = 0
-        # surrounding_active_agents = self.world.patch_map.filter_neighbour_turtles(
-        #         self.patch,
-        #         lambda t: isinstance(t, Agent) and t.active
-        # )
-        #
-        # # Extension : Calculate the average of agents' perceived hardship in the neighbourhood
-        # total_perceived_hardships = 0
-        # total_active_agents = len(surrounding_active_agents)
-        #
-        # if total_active_agents > 0 :
-        #     for agent in surrounding_active_agents:
-        #         total_perceived_hardships += agent.perceived_hardship
-        #
-        #     average_perceived_hardship = total_perceived_hardships / total_active_agents
-        #     return ((self.perceived_hardship + average_perceived_hardship)/2) * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
-        #
-        # else:
         return self.perceived_hardship * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
 
     def get_estimated_arrest_probability(self) -> float:
         """Calculate and return the estimated arrest probability of the agent (based on the formula)."""
-        patch_map = self.world.patch_map
-
         # c = number of neighbour cops
-        c = len(patch_map.filter_neighbour_turtles(self.patch, lambda t: isinstance(t, Cop)))
+        c = len(PatchMap.filter_neighbour_turtles(self.patch, lambda t: isinstance(t, Cop)))
 
         # a = 1 + number of neighbour turtles which are active
-        a = 1 + len(patch_map.filter_neighbour_turtles(
+        a = 1 + len(PatchMap.filter_neighbour_turtles(
             self.patch,
             lambda t: isinstance(t, Agent) and t.active
         ))
@@ -275,37 +226,21 @@ class Agent(Turtle):
         if self.jail_term > 0:
             self.jail_term -= 1
 
-    def is_dangerous_rebel(self) -> bool:
-        return self.perceived_hardship > MIN_DANGEROUS_PERCEIVED_HARDSHIP
-
-    def do_dismiss_agent(self) -> None:
-        if self.active and self.is_dangerous_rebel():
-            # Find all quiet agents in the neighbourhood
-            agents = self.world.patch_map.filter_neighbour_turtles(
-                 self.patch,
-                lambda t: isinstance(t, Agent) and not t.active
-            )
-            # Don't continue if there is no matched agent
-            if len(agents) == 0:
-                return
-
-            # Kill a quiet agent
-            suspect = choice(agents)
-            suspect.alive = False
-
 
 class Patch:
     """
     Simulates a Patch (of a map).
     """
-    x: int                  # x coordinate of this patch.
-    y: int                  # y coordinate of this patch.
-    turtles: List   # All turtles in the patch.
+    x: int                              # x coordinate of this patch.
+    y: int                              # y coordinate of this patch.
+    turtles: List                       # All turtles in the patch.
+    neighbour_patches: List['Patch']    # All neighbour patches within the vision.
 
     def __init__(self, x: int, y: int) -> None:
         self.x = x
         self.y = y
         self.turtles = []
+        self.neighbour_patches = []
 
     def add_turtle(self, turtle: Turtle) -> None:
         """Add a turtle."""
@@ -351,18 +286,27 @@ class PatchMap:
             for x in range(0, MAP_WIDTH):
                 self.patches.append(Patch(x, y))
 
-    def get_neighbours(self, patch: Patch) -> [Patch]:
-        """Ignore the patch to be compared."""
-        return list(filter(lambda p: p != patch and p.is_neighbour_with(patch), self.patches))
+        # Pre-calculate all neighbour patches
+        for curr_patch in self.patches:
+            for patch in self.patches:
+                if patch == curr_patch:
+                    continue
+                if patch.is_neighbour_with(curr_patch):
+                    curr_patch.neighbour_patches.append(patch)
 
-    def get_random_unoccupied_patch(self , patch: Patch = None) -> Union[Patch, None]:
+    @staticmethod
+    def get_neighbours(patch: Patch) -> [Patch]:
+        """Ignore the patch to be compared."""
+        return patch.neighbour_patches
+
+    def get_random_unoccupied_patch(self, patch: Patch = None) -> Union[Patch, None]:
         """
         Get an random, unoccupied patch.
         It will be a neighbour patch if the current patch is specified.
         If there is no patch available, return None.
         """
 
-        patches = self.get_neighbours(patch) if patch is not None else self.patches
+        patches = PatchMap.get_neighbours(patch) if patch is not None else self.patches
         unoccupied_patches = list(filter(lambda p: not p.is_occupied(), patches))
 
         if len(unoccupied_patches) == 0:
@@ -370,13 +314,13 @@ class PatchMap:
 
         return choice(unoccupied_patches)
 
+    @staticmethod
     def filter_neighbour_turtles(
-            self,
-            patch: Patch,
-            turtle_filter: Optional[Callable[[Union[Cop, Agent]], bool]]
+        patch: Patch,
+        turtle_filter: Optional[Callable[[Union[Cop, Agent]], bool]]
     ):
         """Get the filtered list of neighbour turtle based on the filter function."""
-        neighbour_patches = self.get_neighbours(patch)
+        neighbour_patches = PatchMap.get_neighbours(patch)
         all_turtles = []
 
         # For each neighbour patch, find all matching turtles and add to the final list
