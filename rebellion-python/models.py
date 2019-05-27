@@ -62,29 +62,29 @@ class World:
         active = list(filter(lambda t: t.active, agents))
 
         #Extension : Indicates the number of quiet agent who survived
-        quiet_alive = list(filter(lambda t: t.alive, quiet))
+        # quiet_alive = list(filter(lambda t: t.alive, quiet))
 
         #Extension : Indicates the number of quiet agent who were killed by dangerous rebel agent
-        killed = list(filter(lambda t: not t.alive, agents))
+        # killed = list(filter(lambda t: not t.alive, agents))
 
         # Extension : If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
         # it would be reported as true. This state is used as a reference for the Government and Cops that critical rebellion situation occurs 
         # No changing behaviour on the model
-        is_reported = False
-        if len(active)/(len(active) + len(quiet_alive)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
-            is_reported = True 
-
-        # Append current state to the output csv
-        with open(self.output_filename, 'a') as output_file:
-            csv_writer = csv.writer(output_file)
-            columns = [frame, len(quiet_alive), len(jailed), len(active), len(killed), str(is_reported)]
-
-            params = self.params_reader.read_params()
-
-            for p in DYNAMIC_PARAMETERS:
-                columns.append(params[p[0]])
-
-            csv_writer.writerow(columns)
+        # is_reported = False
+        # if len(active)/(len(active) + len(quiet_alive)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
+        #     is_reported = True
+        #
+        # # Append current state to the output csv
+        # with open(self.output_filename, 'a') as output_file:
+        #     csv_writer = csv.writer(output_file)
+        #     columns = [frame, len(quiet_alive), len(jailed), len(active), len(killed), str(is_reported)]
+        #
+        #     params = self.params_reader.read_params()
+        #
+        #     for p in DYNAMIC_PARAMETERS:
+        #         columns.append(params[p[0]])
+        #
+        #     csv_writer.writerow(columns)
 
     def get_dynamic_param(self, key):
         """Get the value of dynamic parameters"""
@@ -169,10 +169,11 @@ class Cop(Turtle):
         suspect.active = False
 
         # Extension : If the suspect is dangerous, the suspect will be jailed in the whole simulation by assigning -1
-        if suspect.is_dangerous_rebel():
-            suspect.jail_term = -1
-        else:   
-            suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
+        # if suspect.is_dangerous_rebel():
+        #     suspect.jail_term = -1
+        # else:
+        #     suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
+        suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
 
 
 class Agent(Turtle):
@@ -198,17 +199,17 @@ class Agent(Turtle):
         """Determines whether to open rebel."""
 
         # Extension : only living agent could perform the actions
-        if self.alive:
-            super().update()
+        # if self.alive:
+        super().update()
 
-            # Only determine behaviour if it is not jailed
-            if self.patch is not None and not self.is_jailed():
-                self.determine_behaviour()
-                # Extension : dangerous rebel agents could kill 1 quiet agent in the neighbourhood
-                self.do_dismiss_agent()
+        # Only determine behaviour if it is not jailed
+        if self.patch is not None and not self.is_jailed():
+            self.determine_behaviour()
+            # Extension : dangerous rebel agents could kill 1 quiet agent in the neighbourhood
+            # self.do_dismiss_agent()
 
-            # Reduce jail term
-            self.decrement_jail_term()
+        # Reduce jail term
+        self.decrement_jail_term()
 
     def can_move(self) -> bool:
         """ If it is jailed or movement is manually disabled it cannot move """
@@ -225,30 +226,30 @@ class Agent(Turtle):
     def get_grievance(self) -> float:
         """Calculate and return the grievance of the agent."""
 
-        # Extension : The perceive hardship of an agent could also be affected by the other active agents' 
-        # perceived hardship in the neighbourhood as the active agent tend to have bad influence to the other agents.
-        # The updated grievance is updated by using the average value of the other active agents' 
-        # perceived hardship in the neighbourhood
-
-        average_perceived_hardship = 0
-        surrounding_active_agents = self.world.patch_map.filter_neighbour_turtles(
-                self.patch,
-                lambda t: isinstance(t, Agent) and t.active
-        )
-
-        # Extension : Calculate the average of agents' perceived hardship in the neighbourhood
-        total_perceived_hardships = 0
-        total_active_agents = len(surrounding_active_agents)
-       
-        if total_active_agents > 0 :
-            for agent in surrounding_active_agents:
-                total_perceived_hardships += agent.perceived_hardship
-
-            average_perceived_hardship = total_perceived_hardships / total_active_agents 
-            return ((self.perceived_hardship + average_perceived_hardship)/2) * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
-       
-        else:
-            return self.perceived_hardship * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
+        # # Extension : The perceive hardship of an agent could also be affected by the other active agents'
+        # # perceived hardship in the neighbourhood as the active agent tend to have bad influence to the other agents.
+        # # The updated grievance is updated by using the average value of the other active agents'
+        # # perceived hardship in the neighbourhood
+        #
+        # average_perceived_hardship = 0
+        # surrounding_active_agents = self.world.patch_map.filter_neighbour_turtles(
+        #         self.patch,
+        #         lambda t: isinstance(t, Agent) and t.active
+        # )
+        #
+        # # Extension : Calculate the average of agents' perceived hardship in the neighbourhood
+        # total_perceived_hardships = 0
+        # total_active_agents = len(surrounding_active_agents)
+        #
+        # if total_active_agents > 0 :
+        #     for agent in surrounding_active_agents:
+        #         total_perceived_hardships += agent.perceived_hardship
+        #
+        #     average_perceived_hardship = total_perceived_hardships / total_active_agents
+        #     return ((self.perceived_hardship + average_perceived_hardship)/2) * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
+        #
+        # else:
+        return self.perceived_hardship * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
 
     def get_estimated_arrest_probability(self) -> float:
         """Calculate and return the estimated arrest probability of the agent (based on the formula)."""

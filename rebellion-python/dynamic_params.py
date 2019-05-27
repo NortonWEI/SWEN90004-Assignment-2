@@ -5,9 +5,9 @@ from pathlib import Path
 
 # Constants which provides default values for dynamic parameters
 MAX_JAILED_TERM = ('max_jailed_term', 30)               # Maximum possible jailed term.
-GOVERNMENT_LEGITIMACY = ('government_legitimacy', 0.5)  # Government legitimacy.
+GOVERNMENT_LEGITIMACY = ('government_legitimacy', 0.82)  # Government legitimacy.
 MOVEMENT = ('movement', True)
-FRAME_INTERVAL = ('frame_interval', 0.01)
+FRAME_INTERVAL = ('frame_interval', 0.1)
 # Extension : The minimum threshold of ratio of quiet agents with total agents (exclude jailed) to get the rebellion reported
 REBELLION_THRESHOLD = ('rebellion_threshold', 0.5)
 
