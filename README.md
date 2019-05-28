@@ -8,7 +8,7 @@
 | Wenzhou Wei | 903836 |
 | Margareta Hardiyanti | 852105 |
 
-## Content
+## Contents
 ### ./readme.md
 The file you currently opened
 ### ./original-model
