@@ -7,3 +7,11 @@
 *.iml
 out
 gen
+
+# Pychart project files
+venv
+__pycache__
+
+# Output files
+*.csv
+*.json
