@@ -1,6 +1,7 @@
 # SWEN90004-Assignment-2
 ### Model Selected: Rebellion (Social Science)
 
+## Team Information
 | Name | Student Number |
 | ------ | ------ |
 | Dafu Ai | 766586 |
