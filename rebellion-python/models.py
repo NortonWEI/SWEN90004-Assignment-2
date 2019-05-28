@@ -152,7 +152,7 @@ class Cop(Turtle):
         """Find and arrest a random active agent in the neighbourhood."""
 
         # Find all active agents in the neighbourhood
-        agents = self.world.patch_map.filter_neighbour_turtles(
+        agents = PatchMap.filter_neighbour_turtles(
             self.patch,
             lambda t: isinstance(t, Agent) and t.active
         )
@@ -171,8 +171,11 @@ class Cop(Turtle):
         # Extension : If the suspect is dangerous, the suspect will be jailed in the whole simulation by assigning -1
         if suspect.is_dangerous_rebel():
             suspect.jail_term = -1
-        else:   
-            suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
+        else:
+            if self.world.get_dynamic_param(MAX_JAILED_TERM[0]) == 0:
+                suspect.jail_term = 0
+            else:
+                suspect.jail_term = randint(1, self.world.get_dynamic_param(MAX_JAILED_TERM[0]))
 
 
 class Agent(Turtle):
@@ -252,13 +255,12 @@ class Agent(Turtle):
 
     def get_estimated_arrest_probability(self) -> float:
         """Calculate and return the estimated arrest probability of the agent (based on the formula)."""
-        patch_map = self.world.patch_map
 
         # c = number of neighbour cops
-        c = len(patch_map.filter_neighbour_turtles(self.patch, lambda t: isinstance(t, Cop)))
+        c = len(PatchMap.filter_neighbour_turtles(self.patch, lambda t: isinstance(t, Cop)))
 
         # a = 1 + number of neighbour turtles which are active
-        a = 1 + len(patch_map.filter_neighbour_turtles(
+        a = 1 + len(PatchMap.filter_neighbour_turtles(
             self.patch,
             lambda t: isinstance(t, Agent) and t.active
         ))
@@ -297,14 +299,16 @@ class Patch:
     """
     Simulates a Patch (of a map).
     """
-    x: int                  # x coordinate of this patch.
-    y: int                  # y coordinate of this patch.
-    turtles: List   # All turtles in the patch.
+    x: int                              # x coordinate of this patch.
+    y: int                              # y coordinate of this patch.
+    turtles: List                       # All turtles in the patch.
+    neighbour_patches: List['Patch']    # All neighbour patches within the vision.
 
     def __init__(self, x: int, y: int) -> None:
         self.x = x
         self.y = y
         self.turtles = []
+        self.neighbour_patches = []
 
     def add_turtle(self, turtle: Turtle) -> None:
         """Add a turtle."""
@@ -350,18 +354,27 @@ class PatchMap:
             for x in range(0, MAP_WIDTH):
                 self.patches.append(Patch(x, y))
 
-    def get_neighbours(self, patch: Patch) -> [Patch]:
-        """Ignore the patch to be compared."""
-        return list(filter(lambda p: p != patch and p.is_neighbour_with(patch), self.patches))
+        # Pre-calculate all neighbour patches
+        for curr_patch in self.patches:
+            for patch in self.patches:
+                if patch == curr_patch:
+                    continue
+                if patch.is_neighbour_with(curr_patch):
+                    curr_patch.neighbour_patches.append(patch)
 
-    def get_random_unoccupied_patch(self , patch: Patch = None) -> Union[Patch, None]:
+    @staticmethod
+    def get_neighbours(patch: Patch) -> [Patch]:
+        """Ignore the patch to be compared."""
+        return patch.neighbour_patches
+
+    def get_random_unoccupied_patch(self, patch: Patch = None) -> Union[Patch, None]:
         """
         Get an random, unoccupied patch.
         It will be a neighbour patch if the current patch is specified.
         If there is no patch available, return None.
         """
 
-        patches = self.get_neighbours(patch) if patch is not None else self.patches
+        patches = PatchMap.get_neighbours(patch) if patch is not None else self.patches
         unoccupied_patches = list(filter(lambda p: not p.is_occupied(), patches))
 
         if len(unoccupied_patches) == 0:
@@ -369,13 +382,13 @@ class PatchMap:
 
         return choice(unoccupied_patches)
 
+    @staticmethod
     def filter_neighbour_turtles(
-            self,
-            patch: Patch,
-            turtle_filter: Optional[Callable[[Union[Cop, Agent]], bool]]
+        patch: Patch,
+        turtle_filter: Optional[Callable[[Union[Cop, Agent]], bool]]
     ):
         """Get the filtered list of neighbour turtle based on the filter function."""
-        neighbour_patches = self.get_neighbours(patch)
+        neighbour_patches = PatchMap.get_neighbours(patch)
         all_turtles = []
 
         # For each neighbour patch, find all matching turtles and add to the final list
