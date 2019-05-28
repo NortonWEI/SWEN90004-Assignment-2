@@ -3,8 +3,10 @@ from math import sqrt, exp, floor
 from random import shuffle, choice, uniform, randint
 from typing import List, Optional, Union, Callable
 
-from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT, REBELLION_THRESHOLD
-from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD, MIN_DANGEROUS_PERCEIVED_HARDSHIP
+from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, \
+    GOVERNMENT_LEGITIMACY, MOVEMENT, REBELLION_THRESHOLD
+from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, \
+    THRESHOLD, MIN_DANGEROUS_PERCEIVED_HARDSHIP
 
 
 # Author: Dafu Ai
@@ -67,17 +69,21 @@ class World:
         #Extension : Indicates the number of quiet agent who were killed by dangerous rebel agent
         killed = list(filter(lambda t: not t.alive, agents))
 
-        # Extension : If the ratio of active rebels with total agents (exclude jailed) exceeds the rebellion threshold, 
-        # it would be reported as true. This state is used as a reference for the Government and Cops that critical rebellion situation occurs 
+        # Extension : If the ratio of active rebels with total agents (exclude jailed)
+        # exceeds the rebellion threshold,
+        # it would be reported as true. This state is used as a reference for the Government
+        # and Cops that critical rebellion situation occurs
         # No changing behaviour on the model
         is_reported = False
-        if len(active)/(len(active) + len(quiet_alive)) > self.get_dynamic_param(REBELLION_THRESHOLD[0]):
+        if len(active)/(len(active) + len(quiet_alive)) > \
+                self.get_dynamic_param(REBELLION_THRESHOLD[0]):
             is_reported = True 
 
         # Append current state to the output csv
         with open(self.output_filename, 'a') as output_file:
             csv_writer = csv.writer(output_file)
-            columns = [frame, len(quiet_alive), len(jailed), len(active), len(killed), str(is_reported)]
+            columns = [frame, len(quiet_alive), len(jailed), len(active),
+                       len(killed), str(is_reported)]
 
             params = self.params_reader.read_params()
 
@@ -118,7 +124,8 @@ class Turtle:
         self.patch = new_patch
 
     def move(self, first_time: bool = False) -> None:
-        """Move to a random, unoccupied patch if it can move or they need to have an initial location)."""
+        """Move to a random, unoccupied patch if it can move
+        or they need to have an initial location)."""
         if not self.can_move() and not first_time:
             return
 
@@ -168,7 +175,8 @@ class Cop(Turtle):
         # Arrest suspect
         suspect.active = False
 
-        # Extension : If the suspect is dangerous, the suspect will be jailed in the whole simulation by assigning -1
+        # Extension : If the suspect is dangerous, the suspect will be jailed
+        # in the whole simulation by assigning -1
         if suspect.is_dangerous_rebel():
             suspect.jail_term = -1
         else:
@@ -186,7 +194,8 @@ class Agent(Turtle):
     active: bool                # Indicates whether the turtle is open rebelling
     risk_aversion: float        # The degree of reluctance to take risks
     perceived_hardship: float   # Perceived hardship of rebelling
-    alive: bool                 # Indicates whether the agent is alive or killed by the active-rebelling agent
+    alive: bool                 # Indicates whether the agent is alive
+                                # or killed by the active-rebelling agent
 
     def __init__(self, world: World) -> None:
         """ Initialise the agent """
@@ -215,7 +224,8 @@ class Agent(Turtle):
 
     def can_move(self) -> bool:
         """ If it is jailed or movement is manually disabled it cannot move """
-        return super().can_move() and not self.is_jailed() and self.world.get_dynamic_param(MOVEMENT[0]) is True
+        return super().can_move() and not self.is_jailed() and \
+               self.world.get_dynamic_param(MOVEMENT[0]) is True
 
     def is_jailed(self) -> bool:
         """Determine whether this agent is currently jailed."""
@@ -228,8 +238,10 @@ class Agent(Turtle):
     def get_grievance(self) -> float:
         """Calculate and return the grievance of the agent."""
 
-        # Extension : The perceive hardship of an agent could also be affected by the other active agents' 
-        # perceived hardship in the neighbourhood as the active agent tend to have bad influence to the other agents.
+        # Extension : The perceive hardship of an agent could also
+        # be affected by the other active agents'
+        # perceived hardship in the neighbourhood as the active agent tend
+        # to have bad influence to the other agents.
         # The updated grievance is updated by using the average value of the other active agents' 
         # perceived hardship in the neighbourhood
 
@@ -248,13 +260,16 @@ class Agent(Turtle):
                 total_perceived_hardships += agent.perceived_hardship
 
             average_perceived_hardship = total_perceived_hardships / total_active_agents 
-            return ((self.perceived_hardship + average_perceived_hardship)/2) * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
+            return ((self.perceived_hardship + average_perceived_hardship)/2) * \
+                   (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
        
         else:
-            return self.perceived_hardship * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
+            return self.perceived_hardship * \
+                   (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
 
     def get_estimated_arrest_probability(self) -> float:
-        """Calculate and return the estimated arrest probability of the agent (based on the formula)."""
+        """Calculate and return the estimated arrest probability of the agent
+        (based on the formula)."""
 
         # c = number of neighbour cops
         c = len(PatchMap.filter_neighbour_turtles(self.patch, lambda t: isinstance(t, Cop)))
@@ -269,7 +284,8 @@ class Agent(Turtle):
 
     def determine_behaviour(self) -> None:
         """Determine the behaviour of this agent by flagging its activeness."""
-        self.active = (self.get_grievance() - self.risk_aversion * self.get_estimated_arrest_probability()) > THRESHOLD
+        self.active = (self.get_grievance() - self.risk_aversion *
+                       self.get_estimated_arrest_probability()) > THRESHOLD
 
     def decrement_jail_term(self) -> None:
         """ Decrement the jail term by 1 if it is positive """

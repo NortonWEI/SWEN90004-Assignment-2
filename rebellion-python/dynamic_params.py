@@ -8,7 +8,8 @@ MAX_JAILED_TERM = ('max_jailed_term', 30)               # Maximum possible jaile
 GOVERNMENT_LEGITIMACY = ('government_legitimacy', 0.5)  # Government legitimacy.
 MOVEMENT = ('movement', True)
 FRAME_INTERVAL = ('frame_interval', 0.01)
-# Extension : The minimum threshold of ratio of quiet agents with total agents (exclude jailed) to get the rebellion reported
+# Extension : The minimum threshold of ratio of quiet agents with total agents (exclude jailed)
+# to get the rebellion reported
 REBELLION_THRESHOLD = ('rebellion_threshold', 0.5)
 
 # Include all parameters here
