@@ -3,7 +3,8 @@ from math import sqrt, exp, floor
 from random import shuffle, choice, uniform, randint
 from typing import List, Optional, Union, Callable
 
-from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, GOVERNMENT_LEGITIMACY, MOVEMENT
+from dynamic_params import DynamicParamReader, DYNAMIC_PARAMETERS, MAX_JAILED_TERM, \
+    GOVERNMENT_LEGITIMACY, MOVEMENT
 from static_params import total_cops, total_agents, VISION, MAP_WIDTH, MAP_HEIGHT, K, THRESHOLD
 
 
@@ -105,7 +106,8 @@ class Turtle:
         self.patch = new_patch
 
     def move(self, first_time: bool = False) -> None:
-        """Move to a random, unoccupied patch if it can move or they need to have an initial location)."""
+        """Move to a random, unoccupied patch if it can move or
+        they need to have an initial location)."""
         if not self.can_move() and not first_time:
             return
 
@@ -190,7 +192,8 @@ class Agent(Turtle):
 
     def can_move(self) -> bool:
         """ If it is jailed or movement is manually disabled it cannot move """
-        return super().can_move() and not self.is_jailed() and self.world.get_dynamic_param(MOVEMENT[0]) is True
+        return super().can_move() and not self.is_jailed() and \
+               self.world.get_dynamic_param(MOVEMENT[0]) is True
 
     def is_jailed(self) -> bool:
         """Determine whether this agent is currently jailed."""
@@ -202,10 +205,12 @@ class Agent(Turtle):
 
     def get_grievance(self) -> float:
         """Calculate and return the grievance of the agent."""
-        return self.perceived_hardship * (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
+        return self.perceived_hardship * \
+               (1 - self.world.get_dynamic_param(GOVERNMENT_LEGITIMACY[0]))
 
     def get_estimated_arrest_probability(self) -> float:
-        """Calculate and return the estimated arrest probability of the agent (based on the formula)."""
+        """Calculate and return the estimated arrest probability of the agent
+        (based on the formula)."""
         # c = number of neighbour cops
         c = len(PatchMap.filter_neighbour_turtles(self.patch, lambda t: isinstance(t, Cop)))
 
@@ -219,7 +224,8 @@ class Agent(Turtle):
 
     def determine_behaviour(self) -> None:
         """Determine the behaviour of this agent by flagging its activeness."""
-        self.active = (self.get_grievance() - self.risk_aversion * self.get_estimated_arrest_probability()) > THRESHOLD
+        self.active = (self.get_grievance() - self.risk_aversion *
+                       self.get_estimated_arrest_probability()) > THRESHOLD
 
     def decrement_jail_term(self) -> None:
         """ Decrement the jail term by 1 if it is positive """
