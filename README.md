@@ -1,6 +1,12 @@
 # SWEN90004-Assignment-2
 ### Model Selected: Rebellion (Social Science)
 
+| Name | Student Number |
+| ------ | ------ |
+| Dafu Ai | 766586 |
+| Wenzhou Wei | 903836 |
+| Margareta Hardiyanti | 852105 |
+
 ## Content
 ### ./readme.md
 The file you currently opened
